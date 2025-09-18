@@ -13,8 +13,6 @@ export const ACCEPT_MIME = {
 export const LS_KEY_CONTENT = 'hse:file:dataurl';
 export const LS_KEY_NAME    = 'hse:file:name';
 export const LS_KEY_TYPE    = 'hse:file:type';
-export const LS_KEY_UUID    = 'hse:file:uuid';
-export const LS_KEY_REMOTE  = 'hse:file:remoteUrl';
 
 // Estilo base da área de upload
 export const baseStyle = {
@@ -77,17 +75,13 @@ export function readFileFromLocalStorage() {
   const fileUrl = localStorage.getItem(LS_KEY_CONTENT);
   const fileName = localStorage.getItem(LS_KEY_NAME) || '';
   const fileType = localStorage.getItem(LS_KEY_TYPE);
-  const uuid = localStorage.getItem(LS_KEY_UUID) || null;
-  const remoteUrl = localStorage.getItem(LS_KEY_REMOTE) || null;
-  return { fileUrl, fileName, fileType, uuid, remoteUrl };
+  return { fileUrl, fileName, fileType };
 }
 
 export function clearLocalFile() {
   localStorage.removeItem(LS_KEY_CONTENT);
   localStorage.removeItem(LS_KEY_NAME);
   localStorage.removeItem(LS_KEY_TYPE);
-  localStorage.removeItem(LS_KEY_UUID);
-  localStorage.removeItem(LS_KEY_REMOTE);
 }
 
 // ---------- Hook com estado (hidrata SINCRONAMENTE) ----------
