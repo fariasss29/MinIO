@@ -1,37 +1,33 @@
+// exibicao.jsx - Versão Simplificada (Sem botão Salvar)
+
 import React, { useRef } from 'react';
 import { Box, Button, Divider, Typography, IconButton, Stack } from '@mui/material';
 import { MdCloudDone, MdDelete } from 'react-icons/md';
-import { VIEWPORT_OFFSET, usePersistentFile, readFileFromLocalStorage } from './localStorage';
+import { VIEWPORT_OFFSET } from './localStorage';
 
 const ACCEPT_ATTR = 'image/*,application/pdf';
 
-export default function Exibicao({ onCleared }) {
-  const { fileUrl, fileName, fileType, save, clear } = usePersistentFile();
-  const { remoteUrl } = readFileFromLocalStorage();
+export default function Exibicao({
+  fileUrl,
+  fileName,
+  fileType,
+  onCleared,
+  onFileSelected, // Prop para trocar o arquivo
+}) {
   const fileInputRef = useRef(null);
 
-  // Se não houver arquivo salvo, o pai decide o que fazer (não auto-redirecionamos aqui)
   if (!fileUrl) return null;
 
   const openPicker = () => fileInputRef.current?.click();
 
   const handleFilePicked = async (e) => {
     const file = e.target.files?.[0];
-    if (!file) return;
-    try {
-      await save(file);
-    } finally {
-      e.target.value = '';
+    if (file) {
+      // Chama a função do pai, que irá acionar o novo upload automaticamente
+      onFileSelected(file);
     }
+    e.target.value = '';
   };
-
-  const handleClear = () => {
-    clear();
-    onCleared?.();
-  };
-
-  // se já temos link remoto, preferir ele (abre direto do MinIO)
-  const previewUrl = remoteUrl || fileUrl;
 
   return (
     <Box sx={{ width: '100%', height: `calc(100vh - ${VIEWPORT_OFFSET}px)`, borderRadius: 4, p: 2, mt: 2 }}>
@@ -50,15 +46,16 @@ export default function Exibicao({ onCleared }) {
             <Typography sx={{ fontWeight: 700, fontSize: 14 }}>{fileName}</Typography>
           </Stack>
           <Stack direction="row" spacing={1}>
+            {/* O BOTÃO SALVAR FOI REMOVIDO */}
             <Button
-              sx={{ backgroundColor: '#fff', width: 130, fontSize: 12, color: 'black' }}
+              sx={{ backgroundColor: '#fff', fontSize: 12, color: 'black' }}
               size="small"
               variant="outlined"
               onClick={openPicker}
             >
               Trocar arquivo
             </Button>
-            <IconButton color="error" onClick={handleClear} title="Remover" size="small">
+            <IconButton color="error" onClick={onCleared} title="Remover" size="small">
               <MdDelete size={21} />
             </IconButton>
           </Stack>
@@ -82,16 +79,16 @@ export default function Exibicao({ onCleared }) {
           {fileType === 'image' ? (
             <Box
               component="img"
-              src={previewUrl}
+              src={fileUrl}
               alt="Mensagem de Segurança"
               loading="lazy"
-              sx={{ width: '100%', height: '100%', objectFit: 'cover' }}
+              sx={{ width: '100%', height: '100%', objectFit: 'contain' }}
             />
           ) : (
             <Box
               component="iframe"
               title="Mensagem de Segurança (PDF)"
-              src={`${previewUrl}#toolbar=0&navpanes=0&scrollbar=0&view=FitH`}
+              src={`${fileUrl}#toolbar=0&navpanes=0&scrollbar=0&view=FitH`}
               sx={{ width: '100%', height: '100%', border: 0 }}
             />
           )}
