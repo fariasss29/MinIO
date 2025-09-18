@@ -5,7 +5,7 @@ import GetL2LStatus from "@/useCases/bps/producao/GET/GetL2LStatus";
 import GetMD47 from "@/useCases/bps/producao/GET/GetMD47";
 import { GetSQCDAnual } from "@/useCases/bps/producao/GET/GetSqdcAnual";
 import { GetHse } from "@/useCases/bps/producao/GET/GetHse";
-import { minioClient }    from "@/services/minioCliente";
+
 
 
 export default function ProducaoListFactory(conn) {
@@ -15,6 +15,6 @@ export default function ProducaoListFactory(conn) {
         consultarDemandasArea: new GetDemandaArea(conn),
         consultarAreasProducao: new GetAreasProducao(conn),
         consultarSQDCAnual: new GetSQCDAnual(conn),
-        consultarHSE: new GetHse({ db: conn, minio: minioClient }),
+        consultarHSE: new GetHse(conn ),
     })
 }
