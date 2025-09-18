@@ -8,58 +8,26 @@ import {
   baseStyle,
   VIEWPORT_OFFSET,
   ACCEPT_MIME,
-  saveFileToLocalStorage,
-  LS_KEY_UUID,
-  LS_KEY_REMOTE,
-} from './localStorage';
+} from './localStorage'; // Não precisa mais do saveFileToLocalStorage aqui
 
-import api from '@/services/axios'; // ajuste o caminho se necessário
-
-export default function PagInicial({ onUploaded }) {
-  const onDrop = useCallback(async (accepted, rejected) => {
-    if (accepted?.length === 1 && !rejected?.length) {
-      try {
-        const file = accepted[0];
-
-        // 1) preview local imediato
-        await saveFileToLocalStorage(file);
-
-        // 2) upload para o back (controller HSE: POST com "files")
-        const fd = new FormData();
-        fd.append('files', file);
-
-        const up = await api.post('/gembavision/producao/hse', fd, {
-          headers: { 'Content-Type': 'multipart/form-data' },
-        });
-
-        const uuid = up?.data?.uuid;
-
-        // 3) buscar URLs pré-assinadas (GET com ?uuid=...)
-        let remoteUrl = null;
-        if (uuid) {
-          const resp = await api.get('/gembavision/producao/hse', {
-            params: { uuid, expires: 300 },
-          });
-          remoteUrl = resp?.data?.urls?.[0]?.url || null;
-        }
-
-        // 4) persistir uuid/remote para reabrir depois
-        if (uuid) localStorage.setItem(LS_KEY_UUID, uuid);
-        if (remoteUrl) localStorage.setItem(LS_KEY_REMOTE, remoteUrl);
-
-        onUploaded && onUploaded();
-        toast.success('Arquivo enviado.');
-      } catch (e) {
-        toast.error(e?.response?.data?.message || e.message || 'Falha ao processar o arquivo.');
+// A prop foi alterada para refletir sua nova função
+export default function PagInicial({ onFileSelected }) {
+  const onDrop = useCallback(
+    (accepted, rejected) => {
+      if (accepted?.length === 1 && !rejected?.length) {
+        // Apenas chama a função do componente pai com o arquivo selecionado
+        onFileSelected(accepted[0]);
+      } else {
+        // A lógica de erro permanece a mesma
+        const error = rejected?.[0]?.errors?.[0];
+        let msg = 'Ocorreu um erro ao enviar o arquivo.';
+        if (error?.code === 'file-invalid-type') msg = 'Formato inválido. Envie PDF ou imagem.';
+        if (error?.code === 'too-many-files') msg = 'Envie somente um arquivo por vez.';
+        toast.error(msg);
       }
-    } else {
-      const error = rejected?.[0]?.errors?.[0];
-      let msg = 'Ocorreu um erro ao enviar o arquivo.';
-      if (error?.code === 'file-invalid-type') msg = 'Formato inválido. Envie PDF ou imagem.';
-      if (error?.code === 'too-many-files') msg = 'Envie somente um arquivo por vez.';
-      toast.error(msg);
-    }
-  }, [onUploaded]);
+    },
+    [onFileSelected] // A dependência agora é a nova função
+  );
 
   const { getRootProps, getInputProps, open } = useDropzone({
     onDrop,
